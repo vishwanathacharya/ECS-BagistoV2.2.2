@@ -50,8 +50,8 @@ jobs:
       id: terraform_output
       run: |
         cd terraform
-        ECR_URL=$(terraform output -raw ecr_repository_url)
-        echo "ecr_repository_url=$ECR_URL" >> $GITHUB_OUTPUT
+        terraform output ecr_repository_url
+        echo "ecr_repository_url=$(terraform output -raw ecr_repository_url)" >> "$GITHUB_OUTPUT"
 
   build:
     name: Build and Push Image
