@@ -94,6 +94,15 @@ php artisan config:clear
 php artisan route:clear
 php artisan view:clear
 
+# Laravel optimization and cache clearing
+echo "Clearing Laravel caches and optimizing..."
+rm -rf public/storage
+php artisan storage:link
+php artisan config:clear
+php artisan view:clear
+php artisan cache:clear
+php artisan vendor:publish --force
+
 # Set permissions for storage and public directories
 chown -R www-data:www-data storage bootstrap/cache public/storage
 chmod -R 775 storage bootstrap/cache public/storage
