@@ -88,7 +88,7 @@ php artisan view:clear
 
 # Set permissions for storage and public directories
 chown -R www-data:www-data storage bootstrap/cache public/storage
-chmod -R 755 storage bootstrap/cache public/storage
+chmod -R 777 storage bootstrap/cache public/storage
 
 # Ensure storage link exists and is accessible
 ls -la public/storage || echo "Storage link creation failed"
