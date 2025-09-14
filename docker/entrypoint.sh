@@ -23,7 +23,7 @@ DB_PASSWORD=${DB_PASSWORD}
 
 CACHE_DRIVER=file
 SESSION_DRIVER=file
-QUEUE_CONNECTION=sync
+QUEUE_CONNECTION=database
 
 # Filesystem configuration for local storage
 FILESYSTEM_DISK=public
@@ -57,6 +57,10 @@ if [ "$TABLES" -lt 5 ]; then
     # Run migrations
     php artisan migrate --force
     
+    # Create queue table if not exists
+    php artisan queue:table --force 2>/dev/null || true
+    php artisan migrate --force
+    
     # Add missing columns if needed
     mysql -h"$DB_HOST" -u"$DB_USERNAME" -p"$DB_PASSWORD" --ssl=0 "$DB_DATABASE" -e "
     ALTER TABLE visits ADD COLUMN IF NOT EXISTS channel_id INT UNSIGNED NULL;
@@ -69,6 +73,10 @@ if [ "$TABLES" -lt 5 ]; then
     echo "Database initialized successfully!"
 else
     echo "Database already initialized, running migrations only..."
+    php artisan migrate --force
+    
+    # Ensure queue table exists
+    php artisan queue:table --force 2>/dev/null || true
     php artisan migrate --force
     
     # Always ensure sample data exists
