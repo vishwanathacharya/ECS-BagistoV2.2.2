@@ -2,7 +2,7 @@ name: Deploy to ECS
 
 on:
   push:
-    branches: [ main, staging, dev ]
+    branches: [ dev, staging, production ]  # Exclude main branch
   workflow_dispatch:
 
 env:
@@ -21,7 +21,7 @@ jobs:
     - name: Set environment based on branch
       id: set-env
       run: |
-        if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+        if [[ "${{ github.ref }}" == "refs/heads/production" ]]; then
           echo "environment=production" >> $GITHUB_OUTPUT
           echo "ecs_cluster=bagisto-production-cluster" >> $GITHUB_OUTPUT
           echo "ecs_service=bagisto-production-service" >> $GITHUB_OUTPUT
