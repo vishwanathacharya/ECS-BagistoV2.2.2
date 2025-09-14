@@ -2,13 +2,15 @@ FROM php:8.3-fpm-alpine AS builder
 
 WORKDIR /var/www/html
 
-# Install build dependencies
+# Install build dependencies and runtime libraries
 RUN apk add --no-cache --virtual .build-deps \
     autoconf g++ make pkgconf re2c \
     zlib-dev libzip-dev libpng-dev libjpeg-turbo-dev freetype-dev \
     icu-dev oniguruma-dev libxml2-dev \
+    && apk add --no-cache \
+    libzip libpng libjpeg-turbo freetype icu oniguruma libxml2 \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install pdo_mysql zip gd intl mbstring xml soap bcmath opcache calendar \
+    && docker-php-ext-install pdo_mysql zip gd intl mbstring xml soap bcmath opcache calendar exif \
     && apk del .build-deps
 
 # Install Composer
@@ -44,7 +46,7 @@ RUN apk add --no-cache --virtual .build-deps \
     zlib-dev libzip-dev libpng-dev libjpeg-turbo-dev freetype-dev \
     icu-dev oniguruma-dev libxml2-dev \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install pdo_mysql zip gd intl mbstring xml soap bcmath opcache calendar \
+    && docker-php-ext-install pdo_mysql zip gd intl mbstring xml soap bcmath opcache calendar exif \
     && apk del .build-deps
 
 # Copy application from builder
