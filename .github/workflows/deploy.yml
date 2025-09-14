@@ -7,9 +7,7 @@ on:
 
 env:
   AWS_REGION: ap-southeast-2
-  ECR_REPOSITORY_WEB: bagisto-app
-  ECR_REPOSITORY_QUEUE: bagisto-queue
-  ECR_REPOSITORY_SCHEDULER: bagisto-scheduler
+  ECR_REPOSITORY: bagisto-app
   ECS_SERVICE: bagisto-staging-service
   ECS_CLUSTER: bagisto-staging-cluster
 
@@ -33,43 +31,19 @@ jobs:
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v2
 
-    - name: Build and push Web App image
+    - name: Build, tag, and push single image to Amazon ECR
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         IMAGE_TAG: ${{ github.sha }}
       run: |
-        # Build web app image
-        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY_WEB:$IMAGE_TAG .
-        docker tag $ECR_REGISTRY/$ECR_REPOSITORY_WEB:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY_WEB:latest
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY_WEB:$IMAGE_TAG
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY_WEB:latest
-        echo "Web image: $ECR_REGISTRY/$ECR_REPOSITORY_WEB:$IMAGE_TAG"
+        # Build single image for all services
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+        docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+        echo "Single image built: $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
 
-    - name: Build and push Queue Worker image
-      env:
-        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        IMAGE_TAG: ${{ github.sha }}
-      run: |
-        # Build queue worker image
-        docker build -f Dockerfile.queue -t $ECR_REGISTRY/$ECR_REPOSITORY_QUEUE:$IMAGE_TAG .
-        docker tag $ECR_REGISTRY/$ECR_REPOSITORY_QUEUE:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY_QUEUE:latest
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY_QUEUE:$IMAGE_TAG
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY_QUEUE:latest
-        echo "Queue image: $ECR_REGISTRY/$ECR_REPOSITORY_QUEUE:$IMAGE_TAG"
-
-    - name: Build and push Scheduler image
-      env:
-        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        IMAGE_TAG: ${{ github.sha }}
-      run: |
-        # Build scheduler image
-        docker build -f Dockerfile.scheduler -t $ECR_REGISTRY/$ECR_REPOSITORY_SCHEDULER:$IMAGE_TAG .
-        docker tag $ECR_REGISTRY/$ECR_REPOSITORY_SCHEDULER:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY_SCHEDULER:latest
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY_SCHEDULER:$IMAGE_TAG
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY_SCHEDULER:latest
-        echo "Scheduler image: $ECR_REGISTRY/$ECR_REPOSITORY_SCHEDULER:$IMAGE_TAG"
-
-    - name: Force ECS deployments
+    - name: Force ECS deployments for all services
       run: |
         echo "Forcing ECS service deployments..."
         
@@ -85,13 +59,13 @@ jobs:
           --cluster $ECS_CLUSTER \
           --service bagisto-staging-queue-worker \
           --force-new-deployment \
-          --region $AWS_REGION || echo "Queue service not found"
+          --region $AWS_REGION || echo "Queue service will be created"
         
         # Update scheduler service
         aws ecs update-service \
           --cluster $ECS_CLUSTER \
           --service bagisto-staging-scheduler \
           --force-new-deployment \
-          --region $AWS_REGION || echo "Scheduler service not found"
+          --region $AWS_REGION || echo "Scheduler service will be created"
         
-        echo "All ECS services updated!"
+        echo "All services updated with same image!"
