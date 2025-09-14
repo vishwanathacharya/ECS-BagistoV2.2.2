@@ -70,6 +70,14 @@ if [ "$TABLES" -lt 5 ]; then
 else
     echo "Database already initialized, running migrations only..."
     php artisan migrate --force
+    
+    # Always ensure sample data exists
+    echo "Checking for sample products..."
+    PRODUCT_COUNT=$(mysql -h"$DB_HOST" -u"$DB_USERNAME" -p"$DB_PASSWORD" --ssl=0 "$DB_DATABASE" -e "SELECT COUNT(*) FROM products;" 2>/dev/null | tail -1)
+    if [ "$PRODUCT_COUNT" -eq 0 ]; then
+        echo "No products found, seeding sample data..."
+        php artisan db:seed --class=DatabaseSeeder --force
+    fi
 fi
 
 # Clear caches
