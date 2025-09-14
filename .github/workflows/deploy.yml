@@ -12,8 +12,6 @@ jobs:
   terraform:
     name: Terraform Infrastructure
     runs-on: ubuntu-latest
-    outputs:
-      ecr_repository_url: ${{ steps.terraform_output.outputs.ecr_repository_url }}
     
     steps:
     - name: Checkout
@@ -45,13 +43,6 @@ jobs:
       run: |
         cd terraform
         terraform apply -auto-approve
-
-    - name: Get Terraform Outputs
-      id: terraform_output
-      run: |
-        cd terraform
-        terraform output ecr_repository_url
-        echo "ecr_repository_url=$(terraform output -raw ecr_repository_url)" >> "$GITHUB_OUTPUT"
 
   build:
     name: Build and Push Image
