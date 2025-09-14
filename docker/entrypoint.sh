@@ -31,6 +31,9 @@ if [ ! -f .env ] || ! grep -q "APP_KEY=base64:" .env; then
     php artisan key:generate --force
 fi
 
+# Always create storage link for images
+php artisan storage:link --force
+
 # Check if database is initialized
 TABLES=$(mysql -h"$DB_HOST" -u"$DB_USERNAME" -p"$DB_PASSWORD" --ssl=0 "$DB_DATABASE" -e "SHOW TABLES;" 2>/dev/null | wc -l)
 
@@ -49,9 +52,6 @@ if [ "$TABLES" -lt 5 ]; then
     # Seed database
     php artisan db:seed --force
     
-    # Create storage link
-    php artisan storage:link
-    
     echo "Database initialized successfully!"
 else
     echo "Database already initialized, running migrations only..."
@@ -64,7 +64,8 @@ php artisan config:clear
 php artisan route:clear
 php artisan view:clear
 
-# Set permissions
-chown -R www-data:www-data storage bootstrap/cache
+# Set permissions for storage and public directories
+chown -R www-data:www-data storage bootstrap/cache public/storage
+chmod -R 755 storage bootstrap/cache public/storage
 
 exec "$@"
