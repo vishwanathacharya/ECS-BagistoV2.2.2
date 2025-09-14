@@ -5,6 +5,8 @@ echo "<p><strong>Environment:</strong> " . ($_ENV['APP_ENV'] ?? 'production') . 
 echo "<p><strong>Server:</strong> " . ($_SERVER['SERVER_NAME'] ?? 'localhost') . "</p>";
 echo "<p><strong>PHP Version:</strong> " . phpversion() . "</p>";
 echo "<p><strong>Pipeline Run:</strong> #" . rand(1000, 9999) . "</p>";
+echo "<p><strong>Build Time:</strong> " . date('H:i:s') . "</p>";
+echo "<p><strong>Status:</strong> ✅ Active Deployment</p>";
 echo "<hr>";
 phpinfo();
 ?>
