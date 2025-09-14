@@ -24,6 +24,10 @@ DB_PASSWORD=${DB_PASSWORD}
 CACHE_DRIVER=file
 SESSION_DRIVER=file
 QUEUE_CONNECTION=sync
+
+# Filesystem configuration for local storage
+FILESYSTEM_DISK=public
+FILESYSTEM_DRIVER=local
 EOF
 
 # Generate app key if not exists
@@ -31,8 +35,18 @@ if [ ! -f .env ] || ! grep -q "APP_KEY=base64:" .env; then
     php artisan key:generate --force
 fi
 
+# Create storage directories
+mkdir -p storage/app/public
+mkdir -p public/storage
+
 # Always create storage link for images
 php artisan storage:link --force
+
+# Create sample images directory structure
+mkdir -p storage/app/public/product
+mkdir -p storage/app/public/category
+mkdir -p storage/app/public/slider
+mkdir -p storage/app/public/logo
 
 # Check if database is initialized
 TABLES=$(mysql -h"$DB_HOST" -u"$DB_USERNAME" -p"$DB_PASSWORD" --ssl=0 "$DB_DATABASE" -e "SHOW TABLES;" 2>/dev/null | wc -l)
@@ -67,5 +81,8 @@ php artisan view:clear
 # Set permissions for storage and public directories
 chown -R www-data:www-data storage bootstrap/cache public/storage
 chmod -R 755 storage bootstrap/cache public/storage
+
+# Ensure storage link exists and is accessible
+ls -la public/storage || echo "Storage link creation failed"
 
 exec "$@"
