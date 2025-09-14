@@ -5,26 +5,28 @@ resource "aws_ecr_repository" "bagisto_app" {
   image_scanning_configuration {
     scan_on_push = true
   }
+}
 
-  lifecycle_policy {
-    policy = jsonencode({
-      rules = [
-        {
-          rulePriority = 1
-          description  = "Keep last 10 images"
-          selection = {
-            tagStatus     = "tagged"
-            tagPrefixList = ["latest"]
-            countType     = "imageCountMoreThan"
-            countNumber   = 10
-          }
-          action = {
-            type = "expire"
-          }
+resource "aws_ecr_lifecycle_policy" "bagisto_app_policy" {
+  repository = aws_ecr_repository.bagisto_app.name
+
+  policy = jsonencode({
+    rules = [
+      {
+        rulePriority = 1
+        description  = "Keep last 10 images"
+        selection = {
+          tagStatus     = "tagged"
+          tagPrefixList = ["latest"]
+          countType     = "imageCountMoreThan"
+          countNumber   = 10
         }
-      ]
-    })
-  }
+        action = {
+          type = "expire"
+        }
+      }
+    ]
+  })
 }
 
 output "ecr_repository_url" {
