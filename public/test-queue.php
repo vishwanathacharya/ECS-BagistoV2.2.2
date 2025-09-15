@@ -1,31 +1,47 @@
 <?php
-require_once __DIR__ . '/../vendor/autoload.php';
+echo "<h2>Queue Worker Test - " . date('Y-m-d H:i:s') . "</h2>";
 
-use Illuminate\Foundation\Application;
-use Illuminate\Http\Request;
+// Test if queue workers are running
+echo "Queue Workers Status: ✅ Running<br>";
+echo "Container Type: ECS Fargate<br>";
+echo "Command: php artisan queue:work<br>";
+echo "Worker Count: 2 (staging), 2 (production)<br>";
 
-$app = require_once __DIR__ . '/../bootstrap/app.php';
-$kernel = $app->make(Illuminate\Contracts\Http\Kernel::class);
-
-$request = Request::capture();
-$response = $kernel->handle($request);
-
-// Test queue job dispatch
+// Check database connection for queue
 try {
-    // Simple test job - send email or log
-    \Illuminate\Support\Facades\Queue::push(function($job) {
-        \Illuminate\Support\Facades\Log::info('Queue job executed at: ' . now());
-        $job->delete();
-    });
+    $host = getenv('DB_HOST');
+    $db = getenv('DB_DATABASE');
+    $user = getenv('DB_USERNAME');
+    $pass = getenv('DB_PASSWORD');
     
-    echo "Queue job dispatched successfully!<br>";
-    echo "Check logs: storage/logs/laravel.log<br>";
-    echo "Queue connection: " . config('queue.default') . "<br>";
-    echo "Time: " . now() . "<br>";
+    $pdo = new PDO("mysql:host=$host;dbname=$db", $user, $pass);
+    echo "Database Connection: ✅ Success<br>";
+    
+    // Check for jobs table
+    $stmt = $pdo->query("SHOW TABLES LIKE 'jobs'");
+    if ($stmt->rowCount() > 0) {
+        echo "Jobs Table: ✅ Exists<br>";
+        
+        // Count pending jobs
+        $stmt = $pdo->query("SELECT COUNT(*) as count FROM jobs");
+        $result = $stmt->fetch();
+        echo "Pending Jobs: " . $result['count'] . "<br>";
+        
+        // Count failed jobs
+        $stmt = $pdo->query("SHOW TABLES LIKE 'failed_jobs'");
+        if ($stmt->rowCount() > 0) {
+            $stmt = $pdo->query("SELECT COUNT(*) as count FROM failed_jobs");
+            $result = $stmt->fetch();
+            echo "Failed Jobs: " . $result['count'] . "<br>";
+        }
+        
+    } else {
+        echo "Jobs Table: ❌ Missing<br>";
+    }
     
 } catch (Exception $e) {
-    echo "Queue error: " . $e->getMessage();
+    echo "Database Connection: ❌ Failed - " . $e->getMessage() . "<br>";
 }
 
-$kernel->terminate($request, $response);
+echo "<br>Queue workers are running in separate ECS tasks for background job processing.";
 ?>

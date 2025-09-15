@@ -101,7 +101,13 @@ php artisan storage:link
 php artisan config:clear
 php artisan view:clear
 php artisan cache:clear
+php artisan route:clear
 php artisan vendor:publish --force
+
+# Force clear bootstrap cache
+rm -rf bootstrap/cache/*.php
+php artisan config:cache
+php artisan route:cache
 
 # Set permissions for storage and public directories
 chown -R www-data:www-data storage bootstrap/cache public/storage
