@@ -32,7 +32,14 @@ EOF
 
 # Generate app key if not exists
 if [ ! -f .env ] || ! grep -q "APP_KEY=base64:" .env; then
+    echo "Generating APP_KEY..."
     php artisan key:generate --force
+fi
+
+# Also set APP_KEY environment variable if not set
+if [ -z "$APP_KEY" ]; then
+    export APP_KEY=$(grep "APP_KEY=" .env | cut -d '=' -f2)
+    echo "APP_KEY set from .env file"
 fi
 
 # Create storage directories
