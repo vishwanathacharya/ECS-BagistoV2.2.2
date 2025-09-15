@@ -6,8 +6,9 @@ echo "<br>Laravel Cache Cleared: ✅";
 echo "<br>Storage Link Created: ✅";
 echo "<br>All systems operational!";
 
-// Test storage link
-if (is_link(public_path('storage'))) {
+// Test storage link (using __DIR__ instead of public_path())
+$storage_link = __DIR__ . '/storage';
+if (is_link($storage_link)) {
     echo "<br>Storage Link Status: ✅ Active";
 } else {
     echo "<br>Storage Link Status: ❌ Missing";
@@ -17,4 +18,10 @@ if (is_link(public_path('storage'))) {
 echo "<br><br>Testing Image Loading:";
 echo "<br><img src='/storage/app/public/test.jpg' alt='Test Image' style='max-width:200px;' onerror='this.style.display=\"none\"; this.nextSibling.style.display=\"inline\";'>";
 echo "<span style='display:none; color:red;'>❌ Image not found</span>";
+
+// Show PHP and server info
+echo "<br><br>Server Info:";
+echo "<br>PHP Version: " . phpversion();
+echo "<br>Server: " . ($_SERVER['SERVER_SOFTWARE'] ?? 'Unknown');
+echo "<br>Document Root: " . ($_SERVER['DOCUMENT_ROOT'] ?? 'Unknown');
 ?>
